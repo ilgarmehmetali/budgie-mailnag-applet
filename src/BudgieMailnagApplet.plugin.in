@@ -1,0 +1,8 @@
+[Plugin]
+Module=libbudgiemailnagapplet.so
+Name=Budgie Mailnag
+Description=Mailnag
+Authors=Mehmet Ali İLGAR <mehmet.ali@milgar.net>
+Copyright=Copyright © 2017 Mehmet Ali İLGAR
+Website=https://github.com/ilgarmehmetali/budgie-mailnag
+Icon=mail-unread-symbolic
