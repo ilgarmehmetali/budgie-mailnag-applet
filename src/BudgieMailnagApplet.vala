@@ -117,6 +117,13 @@ public class Applet : Budgie.Applet
         unread_label.set_alignment(0, 0.5f);
         popover_box.pack_start(unread_label, false, false, 1);
 
+        Gtk.Button refresh_button = new Gtk.Button.with_label("Refresh");
+        popover_box.pack_start(refresh_button, false, false, 1);
+
+        refresh_button.clicked.connect (() => {
+            mailnag.check_for_mails.begin();
+        });
+
         popover.get_child().show_all();
     }
 
