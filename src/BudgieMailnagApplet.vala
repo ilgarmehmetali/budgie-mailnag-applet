@@ -110,7 +110,7 @@ public class Applet : Budgie.Applet
         this.mail_listbox = new Gtk.ListBox();
         popover_box.pack_start(this.mail_listbox, false, false, 1);
 
-        popover_box.pack_start(new Gtk.HSeparator(), false, false, 1);
+        popover_box.pack_start(new Gtk.Separator (Gtk.Orientation.HORIZONTAL), false, false, 1);
 
         unread_label = new Gtk.Label("");
         unread_label.set_ellipsize (Pango.EllipsizeMode.END);
