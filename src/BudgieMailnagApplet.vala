@@ -133,6 +133,7 @@ public class Applet : Budgie.Applet
             Gtk.Label label = new Gtk.Label(mails[i].get("subject").get_string());
             label.set_ellipsize (Pango.EllipsizeMode.END);
             label.set_alignment(0, 0.5f);
+            label.max_width_chars = 40;
 
             this.mail_listbox.add(label);
         }
