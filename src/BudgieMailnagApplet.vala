@@ -53,6 +53,7 @@ public class Applet : Budgie.Applet
 
     private uint mail_count;
     private Gtk.Label unread_label;
+    private Gtk.ListBox mail_listbox;
 
     public Applet()
     {
@@ -77,8 +78,7 @@ public class Applet : Budgie.Applet
             } else {
                 /* Not showing, so show it.. */
 
-                mailnag.get_mail_count(out this.mail_count);
-                unread_label.label = "Unread Mail Count: " + this.mail_count.to_string();
+                this.repopulate_popover();
                 this.manager.show_popover(ebox);
             }
             return Gdk.EVENT_STOP;
@@ -102,16 +102,45 @@ public class Applet : Budgie.Applet
     private void create_mailnag_popover()
     {
         popover = new Budgie.Popover(ebox);
-        Gtk.Box? popover_box = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 0);
+        Gtk.Box? popover_box = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
         popover.add(popover_box);
         popover_box.margin = 6;
-        unread_label = new Gtk.Label("");
 
+
+        this.mail_listbox = new Gtk.ListBox();
+        popover_box.pack_start(this.mail_listbox, false, false, 1);
+
+        popover_box.pack_start(new Gtk.HSeparator(), false, false, 1);
+
+        unread_label = new Gtk.Label("");
+        unread_label.set_ellipsize (Pango.EllipsizeMode.END);
+        unread_label.set_alignment(0, 0.5f);
         popover_box.pack_start(unread_label, false, false, 1);
 
         popover.get_child().show_all();
     }
 
+    void repopulate_popover() {
+
+        HashTable<string,Variant>[] mails;
+
+        GLib.List<weak Gtk.Widget> children = this.mail_listbox.get_children ();
+        foreach (Gtk.Widget element in children)
+            this.mail_listbox.remove(element);
+
+        mailnag.get_mails(out mails);
+        for (int i = 0; i < mails.length && i <10; i++) {
+            Gtk.Label label = new Gtk.Label(mails[i].get("subject").get_string());
+            label.set_ellipsize (Pango.EllipsizeMode.END);
+            label.set_alignment(0, 0.5f);
+
+            this.mail_listbox.add(label);
+        }
+        this.mail_listbox.show_all();
+
+        mailnag.get_mail_count(out this.mail_count);
+        unread_label.label = "Unread Mail Count: " + this.mail_count.to_string();
+    }
 
     public override void update_popovers(Budgie.PopoverManager? manager)
     {
