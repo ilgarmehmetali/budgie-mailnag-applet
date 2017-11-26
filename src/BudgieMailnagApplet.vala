@@ -56,6 +56,8 @@ public class Applet : Budgie.Applet
     private Gtk.Label mail_count_label;
     private Gtk.ListBox mail_listbox;
 
+    private HashTable<string,Variant>[] mails;
+
     public Applet()
     {
         Gtk.Box container_box = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 0);
@@ -94,15 +96,17 @@ public class Applet : Budgie.Applet
         try {
             mailnag = Bus.get_proxy_sync (BusType.SESSION, MAILNAG_BUS_NAME, MAILNAG_BUS_PATH);
             if(mailnag != null){
-
+                this.get_mails();
                 mailnag.get_mail_count(out this.mail_count);
                 update_applet_label(this.mail_count);
 
                 mailnag.mails_added.connect((new_mails, all_mails) => {
+                    this.mails = all_mails;
                     update_applet_label(all_mails.length);
                 });
 
                 mailnag.mails_removed.connect((remaining_mails) => {
+                    this.mails = remaining_mails;
                     update_applet_label(remaining_mails.length);
                 });
             }
@@ -146,16 +150,14 @@ public class Applet : Budgie.Applet
         mail_count_label.label = "("+mail_count.to_string()+")";
     }
 
-        HashTable<string,Variant>[] mails;
     void repopulate_popover() {
 
         GLib.List<weak Gtk.Widget> children = this.mail_listbox.get_children ();
         foreach (Gtk.Widget element in children)
             this.mail_listbox.remove(element);
 
-        mailnag.get_mails(out mails);
-        for (int i = 0; i < mails.length && i <10; i++) {
-            Gtk.Label label = new Gtk.Label(mails[i].get("subject").get_string());
+        for (int i = 0; i < this.mails.length && i <10; i++) {
+            Gtk.Label label = new Gtk.Label(this.mails[i].get("subject").get_string());
             label.set_ellipsize (Pango.EllipsizeMode.END);
             label.set_alignment(0, 0.5f);
             label.max_width_chars = 40;
@@ -166,6 +168,13 @@ public class Applet : Budgie.Applet
 
         mailnag.get_mail_count(out this.mail_count);
         unread_label.label = "Unread Mail Count: " + this.mail_count.to_string();
+    }
+
+    public void get_mails() {
+        new Thread<void*> (null, () => {
+            mailnag.get_mails(out this.mails);
+            return null;
+        });
     }
 
     public override void update_popovers(Budgie.PopoverManager? manager)
