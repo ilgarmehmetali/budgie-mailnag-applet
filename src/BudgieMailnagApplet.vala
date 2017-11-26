@@ -53,13 +53,18 @@ public class Applet : Budgie.Applet
 
     private uint mail_count;
     private Gtk.Label unread_label;
+    private Gtk.Label mail_count_label;
     private Gtk.ListBox mail_listbox;
 
     public Applet()
     {
+        Gtk.Box container_box = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 0);
         widget = new Gtk.Image.from_icon_name("mail-unread-symbolic", Gtk.IconSize.MENU);
+        mail_count_label = new Gtk.Label("(-)");
         ebox = new Gtk.EventBox();
-        ebox.add(widget);
+        container_box.add(widget);
+        container_box.pack_start(mail_count_label, false, false, 6);
+        ebox.add(container_box);
         ebox.margin = 0;
         ebox.border_width = 0;
         add(ebox);
@@ -90,6 +95,16 @@ public class Applet : Budgie.Applet
             mailnag = Bus.get_proxy_sync (BusType.SESSION, MAILNAG_BUS_NAME, MAILNAG_BUS_PATH);
             if(mailnag != null){
 
+                mailnag.get_mail_count(out this.mail_count);
+                update_applet_label(this.mail_count);
+
+                mailnag.mails_added.connect((new_mails, all_mails) => {
+                    update_applet_label(all_mails.length);
+                });
+
+                mailnag.mails_removed.connect((remaining_mails) => {
+                    update_applet_label(remaining_mails.length);
+                });
             }
         } catch (IOError e) {
             print(e.message);
@@ -127,9 +142,12 @@ public class Applet : Budgie.Applet
         popover.get_child().show_all();
     }
 
-    void repopulate_popover() {
+    void update_applet_label(uint mail_count) {
+        mail_count_label.label = "("+mail_count.to_string()+")";
+    }
 
         HashTable<string,Variant>[] mails;
+    void repopulate_popover() {
 
         GLib.List<weak Gtk.Widget> children = this.mail_listbox.get_children ();
         foreach (Gtk.Widget element in children)
