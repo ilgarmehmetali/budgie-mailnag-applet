@@ -140,7 +140,10 @@ public class Applet : Budgie.Applet
         popover_box.pack_start(refresh_button, false, false, 1);
 
         refresh_button.clicked.connect (() => {
-            mailnag.check_for_mails.begin();
+            new Thread<void*> (null, () => {
+                mailnag.check_for_mails.begin();
+                return null;
+            });
         });
 
         popover.get_child().show_all();
